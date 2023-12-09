@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stock Details</title>
+</head>
+<body>
+    <h1>Stock Details</h1>
+    <div>
+        <label for="ticker">Enter Ticker Symbol:</label>
+        <input type="text" id="ticker" />
+        <button onclick="fetchStockDetails()">Fetch Stock Data</button>
+    </div>
+    <div id="stockDetails"></div>
+
+    <script>
+        function fetchStockDetails() {
+            const ticker = document.getElementById('ticker').value;
+            const query = `
+                query {
+                    stock(ticker: "${ticker}") {
+                        name
+                        ticker
+                        price
+                        historicalPrices
+                        highestPrice
+                        lowestPrice
+                        tradingVolume
+                    }
+                }
+            `;
+
+            fetch('/graphql', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ query }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    displayStockDetails(data.data.stock);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        function displayStockDetails(stock) {
+            const stockDetails = document.getElementById('stockDetails');
+            stockDetails.innerHTML = `
+                <h2>${stock.name} (${stock.ticker})</h2>
+                <p>Current Price: $${stock.price}</p>
+                <p>Highest Price: $${stock.highestPrice}</p>
+                <p>Lowest Price: $${stock.lowestPrice}</p>
+                <p>Trading Volume: ${stock.tradingVolume}</p>
+                <h3>Historical Prices</h3>
+                <ul>
+                    ${stock.historicalPrices.map(price => `<li>$${price}</li>`).join('')}
+                </ul>
+            `;
+        }
+    </script>
+</body>
+</html>
